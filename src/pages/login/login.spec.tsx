@@ -7,7 +7,7 @@ import LoginPage from "./Login";
 describe("Login Page", () => {
   it("renders the login page", () => {
     render(<LoginPage />);
-    const loginElement = screen.getByText(/LoginPage/i);
+    const loginElement = screen.getByText("Sign in");
     expect(loginElement).toBeInTheDocument();
     expect(screen.getByPlaceholderText("Username")).toBeInTheDocument();
     expect(screen.getByPlaceholderText("Password")).toBeInTheDocument();
