@@ -16,6 +16,7 @@ import Logo from "../../components/icons/Logo";
 import type { Credentials } from "../../types";
 import { login, self } from "../../http/api";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { useAuthStore, type User } from "../../store";
 
 const getSelf = async () => {
   const { data } = await self();
@@ -28,7 +29,9 @@ const LoginPage = () => {
     return data;
   };
 
-  const { data: selfData, refetch } = useQuery({
+  const { setUser } = useAuthStore();
+
+  const { refetch } = useQuery({
     queryKey: ["self"],
     queryFn: getSelf,
     enabled: false,
@@ -38,13 +41,9 @@ const LoginPage = () => {
     mutationKey: ["login"], // Unique key for the mutation
     // Define the mutation function
     mutationFn: loginUser,
-    onSuccess: () => {
-      // getSelf
-      refetch();
-      console.log(selfData, "userData");
-      // store in the state
-      // Handle successful login, e.g., redirect or show a success message
-      console.log("Login successful!");
+    onSuccess: async () => {
+      const selfDataPromise = await refetch();
+      setUser(selfDataPromise.data as User);
     },
   });
 
