@@ -14,8 +14,13 @@ import { LockFilled, LockOutlined, UserOutlined } from "@ant-design/icons";
 import Logo from "../../components/icons/Logo";
 
 import type { Credentials } from "../../types";
-import { login } from "../../http/api";
-import { useMutation } from "@tanstack/react-query";
+import { login, self } from "../../http/api";
+import { useMutation, useQuery } from "@tanstack/react-query";
+
+const getSelf = async () => {
+  const { data } = await self();
+  return data;
+};
 
 const LoginPage = () => {
   const loginUser = async (userData: Credentials) => {
@@ -23,11 +28,21 @@ const LoginPage = () => {
     return data;
   };
 
+  const { data: selfData, refetch } = useQuery({
+    queryKey: ["self"],
+    queryFn: getSelf,
+    enabled: false,
+  });
+
   const { mutate, isPending, isError, error } = useMutation({
     mutationKey: ["login"], // Unique key for the mutation
     // Define the mutation function
     mutationFn: loginUser,
     onSuccess: () => {
+      // getSelf
+      refetch();
+      console.log(selfData, "userData");
+      // store in the state
       // Handle successful login, e.g., redirect or show a success message
       console.log("Login successful!");
     },
