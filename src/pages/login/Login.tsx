@@ -1,86 +1,130 @@
-import { Button, Card, Checkbox, Flex, Form, Input, Layout, Space } from "antd";
+import {
+  Alert,
+  Button,
+  Card,
+  Checkbox,
+  Flex,
+  Form,
+  Input,
+  Layout,
+  Space,
+} from "antd";
 import { LockFilled, LockOutlined, UserOutlined } from "@ant-design/icons";
-import React from "react";
+
 import Logo from "../../components/icons/Logo";
 
+import type { Credentials } from "../../types";
+import { login } from "../../http/api";
+import { useMutation } from "@tanstack/react-query";
+
 const LoginPage = () => {
+  const loginUser = async (userData: Credentials) => {
+    const { data } = await login(userData);
+    return data;
+  };
+
+  const { mutate, isPending, isError, error } = useMutation({
+    mutationKey: ["login"], // Unique key for the mutation
+    // Define the mutation function
+    mutationFn: loginUser,
+    onSuccess: () => {
+      // Handle successful login, e.g., redirect or show a success message
+      console.log("Login successful!");
+    },
+  });
+
   return (
-    <>
-      <Layout
-        style={{ height: "100vh", display: "grid", placeItems: "center" }}
-      >
-        <Space direction="vertical" size="large" align="center">
-          <Layout.Content
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
+    <Layout style={{ height: "100vh", display: "grid", placeItems: "center" }}>
+      <Space direction="vertical" size="large" align="center">
+        <Layout.Content
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <Logo />
+        </Layout.Content>
+        <Card
+          title={
+            <Space
+              style={{
+                width: "100%",
+                fontSize: 16,
+                justifyContent: "center",
+              }}
+            >
+              <LockFilled />
+              <span>Sign in</span>
+            </Space>
+          }
+          variant="borderless"
+          style={{ width: 300 }}
+        >
+          <Form
+            initialValues={{ remember: true }}
+            onFinish={(values) => {
+              mutate({ email: values.username, password: values.password });
+              console.log("Form values:", values);
             }}
           >
-            <Logo />
-          </Layout.Content>
-          <Card
-            title={
-              <Space
-                style={{
-                  width: "100%",
-                  fontSize: 16,
-                  justifyContent: "center",
-                }}
-              >
-                <LockFilled />
-                <span>Sign in</span>
-              </Space>
-            }
-            variant="borderless"
-            style={{ width: 300 }}
-          >
-            <Form initialValues={{ remember: true }}>
-              <Form.Item
-                name={"username"}
-                rules={[
-                  { required: true, message: "Please input your username!" },
-                  { type: "email", message: "Please enter a valid email!" },
-                ]}
-              >
-                <Input prefix={<UserOutlined />} placeholder="Username"></Input>
-              </Form.Item>
-              <Form.Item
-                name={"password"}
-                rules={[
-                  { required: true, message: "Please input your password!" },
-                  {},
-                ]}
-              >
-                <Input.Password
-                  prefix={<LockOutlined />}
-                  placeholder="Password"
-                />
-              </Form.Item>
-              <Flex justify="space-between">
-                <Form.Item name={"remember"} valuePropName="checked">
-                  <Checkbox>Remember me</Checkbox>
-                </Form.Item>
-                <a id="login-form-forgot" href="#">
-                  Forgot Password
-                </a>
-              </Flex>
+            {isError && (
+              <Alert
+                style={{ marginBottom: 24 }}
+                type="error"
+                message={error.message}
+              />
+            )}
 
-              <Form.Item>
-                <Button
-                  type="primary"
-                  htmlType="submit"
-                  style={{ width: "100%" }}
-                >
-                  {" "}
-                  Log in
-                </Button>
+            <Form.Item
+              name={"username"}
+              rules={[
+                { required: true, message: "Please input your username!" },
+                { type: "email", message: "Please enter a valid email!" },
+              ]}
+            >
+              <Input prefix={<UserOutlined />} placeholder="Username"></Input>
+            </Form.Item>
+            <Form.Item
+              name={"password"}
+              rules={[
+                { required: true, message: "Please input your password!" },
+                {
+                  min: 8,
+                  message: "Password must be at least 8 characters!",
+                },
+              ]}
+            >
+              <Input.Password
+                prefix={<LockOutlined />}
+                placeholder="Password"
+              />
+            </Form.Item>
+            <Flex justify="space-between">
+              <Form.Item name={"remember"} valuePropName="checked">
+                <Checkbox>Remember me</Checkbox>
               </Form.Item>
-            </Form>
-          </Card>
-        </Space>
-      </Layout>
-    </>
+              <a id="login-form-forgot" href="#">
+                Forgot Password
+              </a>
+            </Flex>
+
+            <Form.Item>
+              <Button
+                type="primary"
+                htmlType="submit"
+                style={{ width: "100%" }}
+                loading={isPending}
+                disabled={isPending}
+              >
+                {" "}
+                Log in
+              </Button>
+            </Form.Item>
+          </Form>
+        </Card>
+      </Space>
+    </Layout>
   );
 };
 
